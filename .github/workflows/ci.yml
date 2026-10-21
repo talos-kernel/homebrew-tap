@@ -1,0 +1,110 @@
+name: Native Homebrew lifecycle
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lifecycle:
+    name: Apple Silicon · normal Homebrew lifecycle
+    runs-on: macos-15
+    timeout-minutes: 25
+    env:
+      HOMEBREW_NO_ANALYTICS: "1"
+      HOMEBREW_NO_AUTO_UPDATE: "1"
+      HOMEBREW_NO_INSTALL_CLEANUP: "1"
+      HOMEBREW_NO_AUTOREMOVE: "1"
+      HOMEBREW_NO_ASK: "1"
+      HOMEBREW_DEVELOPER: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Check out the exact candidate
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Prepare a fresh ARM runner and bind the local tap
+        run: |
+          set -euo pipefail
+          test "$(uname -m)" = arm64
+          mkdir -p "$RUNNER_TEMP/talos-brew-logs"
+          brew update
+          brew --version
+          sw_vers
+          brew ruby -e 'abort "Homebrew 7 or later is required" if HOMEBREW_VERSION.to_i < 7'
+          test ! -d "$(brew --cellar)/talos"
+          test ! -e "$(brew --prefix)/bin/talos"
+          test ! -L "$(brew --prefix)/bin/talos"
+          brew tap talos-kernel/tap "$GITHUB_WORKSPACE"
+          echo 'TALOS_CI_TAPPED=1' >> "$GITHUB_ENV"
+          tap_path="$(brew --repository talos-kernel/tap)"
+          test "$(git -C "$tap_path" rev-parse HEAD)" = "$(git rev-parse HEAD)"
+          cmp Formula/talos.rb "$tap_path/Formula/talos.rb"
+          shasum -a 256 Formula/talos.rb
+          ruby -c Formula/talos.rb
+
+      # This disposable runner may install/upgrade normal prerequisites. Never
+      # bypass dependency checks: the public brew test command is the gate.
+      - name: First normal install and test
+        run: |
+          set -euo pipefail
+          brew install talos-kernel/tap/talos 2>&1 | tee "$RUNNER_TEMP/talos-brew-logs/install-1.log"
+          brew test talos-kernel/tap/talos 2>&1 | tee "$RUNNER_TEMP/talos-brew-logs/test-1.log"
+          brew uninstall talos-kernel/tap/talos
+          test ! -e "$(brew --prefix)/bin/talos"
+          test ! -L "$(brew --prefix)/bin/talos"
+
+      - name: Second normal install and test
+        run: |
+          set -euo pipefail
+          cmp Formula/talos.rb "$(brew --repository talos-kernel/tap)/Formula/talos.rb"
+          brew install talos-kernel/tap/talos 2>&1 | tee "$RUNNER_TEMP/talos-brew-logs/install-2.log"
+          brew test talos-kernel/tap/talos 2>&1 | tee "$RUNNER_TEMP/talos-brew-logs/test-2.log"
+
+      - name: Repeat post-install and test native-byte integrity
+        run: |
+          set -euo pipefail
+          brew postinstall talos-kernel/tap/talos 2>&1 | tee "$RUNNER_TEMP/talos-brew-logs/postinstall.log"
+          brew test talos-kernel/tap/talos 2>&1 | tee "$RUNNER_TEMP/talos-brew-logs/postinstall-test.log"
+
+      - name: Reinstall and test
+        run: |
+          set -euo pipefail
+          brew reinstall talos-kernel/tap/talos 2>&1 | tee "$RUNNER_TEMP/talos-brew-logs/reinstall.log"
+          brew test talos-kernel/tap/talos 2>&1 | tee "$RUNNER_TEMP/talos-brew-logs/reinstall-test.log"
+          cmp Formula/talos.rb "$(brew --repository talos-kernel/tap)/Formula/talos.rb"
+
+      - name: Remove only this job's package and tap
+        if: always()
+        run: |
+          set -euo pipefail
+          if [[ "${TALOS_CI_TAPPED:-}" = 1 ]]; then
+            if brew list --versions talos-kernel/tap/talos >/dev/null 2>&1; then
+              brew uninstall talos-kernel/tap/talos 2>&1 | tee "$RUNNER_TEMP/talos-brew-logs/uninstall.log"
+            fi
+            test ! -e "$(brew --prefix)/bin/talos"
+            test ! -L "$(brew --prefix)/bin/talos"
+            brew untap talos-kernel/tap
+          fi
+
+      - name: Retain lifecycle logs
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: native-homebrew-lifecycle
+          path: ${{ runner.temp }}/talos-brew-logs/
+          retention-days: 7
+          if-no-files-found: warn
