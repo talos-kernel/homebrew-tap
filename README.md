@@ -1,6 +1,6 @@
 # Talos Homebrew tap
 
-Talos's own tap for the beta CLI: Apple Silicon, macOS 14 or newer. This is not
+Talos's own tap for the beta CLI: Homebrew 7+, Apple Silicon, macOS 14 or newer. This is not
 a Homebrew/core formula or a notarized desktop application.
 
 ```sh
@@ -31,8 +31,10 @@ check migration compatibility before running older code against newer state.
 
 The formula pins Talos's signed source release by SHA-256. Each Python wheel is an
 original upstream PyPI download pinned individually and checked again against the
-release's hashed lock. Homebrew fetches the files; Python installation then runs
-offline with no dependency resolution. There is no Talos wheel bundle or bottle.
+release's hashed lock. Homebrew fetches and stages the original wheel archives;
+after its native-library processing, a network-denied post-install step installs
+them offline with no dependency resolution. This preserves upstream native-library
+bytes instead of rewriting their loader paths. There is no Talos wheel bundle or bottle.
 
 Talos and this formula are MIT-licensed. Third-party components retain their own
 licenses, including the native libraries in binary wheels; the formula's MIT label

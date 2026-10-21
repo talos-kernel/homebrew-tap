@@ -5,6 +5,7 @@ class Talos < Formula
   homepage "https://talos-agent.ch"
   url "https://github.com/talos-kernel/Talos/releases/download/v0.20.0-beta.5/talos-0.20.0-beta.5.tar.gz"
   version "0.20.0-beta.5"
+  revision 1
   sha256 "ddd24ce4d26f79640fe7ce9e9770a9aa770e8c73700895212fa253772cd63059"
   license "MIT"
 
@@ -14,6 +15,19 @@ class Talos < Formula
   end
   depends_on arch: :arm64
   depends_on "python@3.13"
+
+  # Upstream wheels already carry self-contained loader-relative libraries.
+  # Keep them archived through Homebrew's Mach-O rewrite, then install verbatim.
+  deny_network_access! :postinstall
+  post_install_steps do
+    run "{{HOMEBREW_PREFIX}}/opt/python@3.13/bin/python3.13",
+        args: ["-m", "pip", "--isolated", "--disable-pip-version-check",
+               "--python={{libexec}}/.venv/bin/python", "install", "--no-index",
+               "--no-deps", "--only-binary=:all:", "--require-hashes",
+               "--find-links={{libexec}}/wheelhouse", "-r", "{{libexec}}/requirements.lock"]
+    run "{{HOMEBREW_PREFIX}}/opt/python@3.13/bin/python3.13",
+        args: ["-m", "pip", "--isolated", "--python={{libexec}}/.venv/bin/python", "check"]
+  end
 
   resource "anyio" do
     url "https://files.pythonhosted.org/packages/da/35/f2287558c17e29fafc8ef3daf819bb9834061cfa43bff8014f7df7f63bdc/anyio-4.14.2-py3-none-any.whl"
@@ -183,7 +197,7 @@ class Talos < Formula
   def install
     libexec.install Dir["*"]
     libexec.install ".env.example"
-    wheelhouse = buildpath/"wheelhouse"
+    wheelhouse = libexec/"wheelhouse"
     # Keep the original wheels intact; pip enforces the signed runtime lock.
     wheelhouse.mkpath
     resources.each do |wheel|
@@ -191,11 +205,6 @@ class Talos < Formula
     end
     python = Formula["python@3.13"].opt_bin/"python3.13"
     virtualenv_create(libexec/".venv", python, system_site_packages: false)
-    system python, "-m", "pip", "--isolated", "--disable-pip-version-check",
-           "--python=#{libexec}/.venv/bin/python", "install", "--no-index",
-           "--no-deps", "--only-binary=:all:", "--require-hashes",
-           "--find-links=#{wheelhouse}", "-r", libexec/"requirements.lock"
-    system python, "-m", "pip", "--isolated", "--python=#{libexec}/.venv/bin/python", "check"
     # Code stays in Cellar. No install/post_install hook creates user state.
     (libexec/".talos-install-manager").write "homebrew\n"
     (bin/"talos").write_env_script libexec/"bin/talos",
@@ -227,5 +236,23 @@ class Talos < Formula
            "from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey; " \
            "key=Ed25519PrivateKey.generate(); msg=b'talos-install-proof'; " \
            "key.public_key().verify(key.sign(msg), msg)"
+    # Homebrew post-processing must not rewrite upstream wheel Mach-O payloads.
+    native_integrity = <<~PYTHON
+      import hashlib, pathlib, sys, sysconfig, zipfile
+      installed = pathlib.Path(sysconfig.get_paths()["platlib"])
+      checked = 0
+      for wheel in pathlib.Path(sys.argv[1]).glob("*.whl"):
+          with zipfile.ZipFile(wheel) as archive:
+              for name in archive.namelist():
+                  if not name.endswith((".dylib", ".so")):
+                      continue
+                  target = installed / name
+                  assert target.is_file(), name
+                  assert hashlib.sha256(target.read_bytes()).digest() == hashlib.sha256(archive.read(name)).digest(), name
+                  checked += 1
+      assert checked > 0
+      print(f"UPSTREAM_NATIVE_BYTES_UNCHANGED {checked}")
+    PYTHON
+    system libexec/".venv/bin/python", "-c", native_integrity, libexec/"wheelhouse"
   end
 end
