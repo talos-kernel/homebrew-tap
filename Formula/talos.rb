@@ -3,10 +3,9 @@ class Talos < Formula
 
   desc "Local autonomous agent with a deterministic security kernel"
   homepage "https://talos-agent.ch"
-  url "https://github.com/talos-kernel/Talos/releases/download/v0.20.0-beta.5/talos-0.20.0-beta.5.tar.gz"
-  version "0.20.0-beta.5"
-  revision 1
-  sha256 "ddd24ce4d26f79640fe7ce9e9770a9aa770e8c73700895212fa253772cd63059"
+  url "https://github.com/talos-kernel/Talos/releases/download/v0.20.0-beta.6/talos-0.20.0-beta.6.tar.gz"
+  version "0.20.0-beta.6"
+  sha256 "fe80a32dd75d563c808ecaf8dc9f331c1af451ef5805afd064c433a121c07f1b"
   license "MIT"
 
   depends_on :macos
@@ -80,8 +79,8 @@ class Talos < Formula
   end
 
   resource "filelock" do
-    url "https://files.pythonhosted.org/packages/36/d2/b70a31e13d04456d28493f31d2aa087e99eeb2767ef0293b2625727ccb8c/filelock-3.32.5-py3-none-any.whl"
-    sha256 "142cd9fa77a872c5e78c62329a0d15278fadc686eb89e760017968961a4fd6b2"
+    url "https://files.pythonhosted.org/packages/e0/1b/5e74289a1878e666bb4b65fe5805a04cafcac2aa5f519ef1ead67ef91c56/filelock-4.2.4-py3-none-any.whl"
+    sha256 "301241438c57936ef93f4243a94f2559022268bfcf9b375a9a72eb0f8db8358e"
   end
 
   resource "flatbuffers" do
