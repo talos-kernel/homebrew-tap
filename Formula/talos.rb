@@ -5,7 +5,7 @@ class Talos < Formula
   homepage "https://talos-agent.ch"
   url "https://github.com/talos-kernel/Talos/releases/download/v0.20.0-beta.6/talos-0.20.0-beta.6.tar.gz"
   version "0.20.0-beta.6"
-  sha256 "85e2bfd2d012f4da7b5c07d49e1d4762ac85a5ba31a517a932f32d68445eb74c"
+  sha256 "fe80a32dd75d563c808ecaf8dc9f331c1af451ef5805afd064c433a121c07f1b"
   license "MIT"
 
   depends_on :macos
