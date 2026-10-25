@@ -3,9 +3,9 @@ class Talos < Formula
 
   desc "Local autonomous agent with a deterministic security kernel"
   homepage "https://talos-agent.ch"
-  url "https://github.com/talos-kernel/Talos/releases/download/v0.20.0-beta.7/talos-0.20.0-beta.7.tar.gz"
-  version "0.20.0-beta.7"
-  sha256 "85a8d5a99f335659416f7a8e6a4004a5d4370c7184d4028755d7362dc57cdce7"
+  url "https://github.com/talos-kernel/Talos/releases/download/v0.20.0-beta.8/talos-0.20.0-beta.8.tar.gz"
+  version "0.20.0-beta.8"
+  sha256 "d16669b0eefad370f4916a885b8ee2ea766eb8cbb80daefed37f3195f712f713"
   license "MIT"
 
   depends_on :macos
@@ -143,6 +143,11 @@ class Talos < Formula
     sha256 "d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c"
   end
 
+  resource "pip" do
+    url "https://files.pythonhosted.org/packages/3f/06/3e4420302363fbb71be3c7f35ce042f54bfca330e3e66b3a2e3c4cca579f/pip-26.2.2-py3-none-any.whl"
+    sha256 "fd7f4dfa8190e014013b9f08f3e973f4e4c26ffd179a204895533a7254813a70"
+  end
+
   resource "primp" do
     url "https://files.pythonhosted.org/packages/76/8d/c62601ab82b831e12b1dee9ad9e7de2082c33a8774c4e71a76c3f0f76af3/primp-2.0.0-cp310-abi3-macosx_11_0_arm64.whl"
     sha256 "c55f8ab86b7cc076b34ee0316ded6c30e9932ea010aeae3f8fe5cf30d9ecccf7"
@@ -232,6 +237,7 @@ class Talos < Formula
     refute_path_exists testpath/".talos/homebrew"
     system libexec/".venv/bin/python", "-c",
            "import av, ctranslate2, onnxruntime, cryptography, faster_whisper, ddgs, pypdf; " \
+           "import importlib.metadata as m; assert [d.version for d in m.distributions() if d.metadata['Name'].lower()=='pip']==['26.2.2']; " \
            "from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey; " \
            "key=Ed25519PrivateKey.generate(); msg=b'talos-install-proof'; " \
            "key.public_key().verify(key.sign(msg), msg)"
