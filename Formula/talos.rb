@@ -3,9 +3,9 @@ class Talos < Formula
 
   desc "Local autonomous agent with a deterministic security kernel"
   homepage "https://talos-agent.ch"
-  url "https://github.com/talos-kernel/Talos/releases/download/v0.20.0-beta.6/talos-0.20.0-beta.6.tar.gz"
-  version "0.20.0-beta.6"
-  sha256 "fe80a32dd75d563c808ecaf8dc9f331c1af451ef5805afd064c433a121c07f1b"
+  url "https://github.com/talos-kernel/Talos/releases/download/v0.20.0-beta.7/talos-0.20.0-beta.7.tar.gz"
+  version "0.20.0-beta.7"
+  sha256 "85a8d5a99f335659416f7a8e6a4004a5d4370c7184d4028755d7362dc57cdce7"
   license "MIT"
 
   depends_on :macos
