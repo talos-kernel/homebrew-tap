@@ -3,9 +3,9 @@ class Talos < Formula
 
   desc "Local autonomous agent with a deterministic security kernel"
   homepage "https://talos-agent.ch"
-  url "https://github.com/talos-kernel/Talos/releases/download/v0.20.0-rc.1/talos-0.20.0-rc.1.tar.gz"
-  version "0.20.0-rc.1"
-  sha256 "b4aeb5e02dd59434d8378ee36a21d3d54bf081135883f4370889ca4869be8932"
+  url "https://github.com/talos-kernel/Talos/releases/download/v0.20.0-rc.2/talos-0.20.0-rc.2.tar.gz"
+  version "0.20.0-rc.2"
+  sha256 "63259c0af2ca75ceffab53f787472942e8803008554c10cc383afcdfcac558df"
   license "MIT"
 
   depends_on :macos
@@ -164,8 +164,8 @@ class Talos < Formula
   end
 
   resource "pypdf" do
-    url "https://files.pythonhosted.org/packages/1b/4d/c9d2d67f204eff463237a1a8f5e25a6923b7b1043982b91fcaf104c8ef60/pypdf-6.21.2-py3-none-any.whl"
-    sha256 "1d44d1a3a200f25062adff0085b02040e4646431ac2ccac22e42679e91466084"
+    url "https://files.pythonhosted.org/packages/3f/4b/77e8ad4ac42c9d93600f40541a50e9feb3a61d2bbee2d76f659346072051/pypdf-6.21.4-py3-none-any.whl"
+    sha256 "33e4fb41ca352810eb4e9838aa0d82d6888a5f8bf682f43e99cce5faa666255c"
   end
 
   resource "pyyaml" do
