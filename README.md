@@ -1,6 +1,6 @@
 # Talos Homebrew tap
 
-Talos's own tap for the beta CLI: Homebrew 7+, Apple Silicon, macOS 14 or newer. This is not
+Talos's own tap for the stable CLI: Homebrew 7+, Apple Silicon, macOS 14 or newer. This is not
 a Homebrew/core formula or a notarized desktop application.
 
 ```sh
@@ -45,4 +45,4 @@ environment, especially PyAV/FFmpeg and its codec libraries.
 - [Homebrew lifecycle documentation](https://github.com/talos-kernel/Talos/blob/main/docs/homebrew.md)
 - [Signed installer for other supported environments](https://talos-agent.ch)
 
-Beta software: keep backups and use a test profile before adopting it for important work.
+Stable 0.20.0 retains the frozen operator contract. Keep backups and use a test profile before adopting it for important work.
